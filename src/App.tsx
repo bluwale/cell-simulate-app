@@ -5,7 +5,7 @@ import InputField from './Components/InputField';
 import PetriDish from './Components/PetriDish';
 import { Cell } from './cell';
 
-// Move initializeGrid function outside component to avoid redeclaration
+// Function to initialize the grid with cells
 const initializeGrid = (rows: number = 50, cols: number = 50): Cell[][] => {
   const grid: Cell[][] = [];
 
@@ -25,6 +25,20 @@ const initializeGrid = (rows: number = 50, cols: number = 50): Cell[][] => {
 
   return grid;
 };
+
+const HandleCellClick = (row: number, col: number) => {
+  setGrid((prevGrid) => {
+    const newGrid = prevGrid.map((r, rowIndex) =>
+      r.map((cell, colIndex) => {
+        if (rowIndex === row && colIndex === col) {
+          return { ...cell, alive: false, age: 0 }; // mark dead
+        }
+        return cell;
+      })
+    );
+    return newGrid;
+  });
+}
 
 const App: React.FC = () => {
   const [running, setRunning] = useState(false); // State to track if the simulation is running

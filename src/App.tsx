@@ -26,20 +26,6 @@ const initializeGrid = (rows: number = 50, cols: number = 50): Cell[][] => {
   return grid;
 };
 
-const HandleCellClick = (row: number, col: number) => {
-  setGrid((prevGrid) => {
-    const newGrid = prevGrid.map((r, rowIndex) =>
-      r.map((cell, colIndex) => {
-        if (rowIndex === row && colIndex === col) {
-          return { ...cell, alive: false, age: 0 }; // mark dead
-        }
-        return cell;
-      })
-    );
-    return newGrid;
-  });
-}
-
 const App: React.FC = () => {
   const [running, setRunning] = useState(false); // State to track if the simulation is running
   const [grid, setGrid] = useState<Cell[][]>(initializeGrid());
@@ -48,6 +34,21 @@ const App: React.FC = () => {
   const [timeInterval, setTimeInterval] = useState('');
   const [mutationRate, setMutationRate] = useState('');
   const [lifespan, setLifespan] = useState('');
+
+  // Fixed cell click handler - moved inside component to access setGrid
+  const handleCellClick = (row: number, col: number) => {
+    setGrid((prevGrid) => {
+      const newGrid = prevGrid.map((r, rowIndex) =>
+        r.map((cell, colIndex) => {
+          if (rowIndex === row && colIndex === col) {
+            return { ...cell, isAlive: false, age: 0 }; // Fixed: use isAlive instead of alive
+          }
+          return cell;
+        })
+      );
+      return newGrid;
+    });
+  };
 
   const toggleSimulation = () => {
     // Function to toggle the simulation state
@@ -87,7 +88,7 @@ const App: React.FC = () => {
         </button>
       </div>
       
-      <PetriDish grid={grid} />
+      <PetriDish grid={grid} onCellClick={handleCellClick} />
     </div>
   );
 };

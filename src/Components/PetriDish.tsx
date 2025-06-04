@@ -4,10 +4,10 @@ import './styles.css';
 
 type PetriDishProps = {
     grid: Cell[][];
-    onCellClick?: (cell: Cell) => void;
+    onCellClick?: (row: number, col: number) => void; // Fixed: proper function signature
 }
 
-const PetriDish: React.FC<PetriDishProps> = ({ grid,onCellClick }) => {
+const PetriDish: React.FC<PetriDishProps> = ({ grid, onCellClick }) => {
     return (
         <div className="petri-dish">
             {grid.map((row, rowIndex) => (
@@ -16,7 +16,8 @@ const PetriDish: React.FC<PetriDishProps> = ({ grid,onCellClick }) => {
                         <div
                             key={colIndex}
                             className={`cell ${cell.isAlive ? 'alive' : 'dead'}`}
-                            onClick={() => onCellClick(rowIndex, colIndex)}
+                            onClick={() => onCellClick && onCellClick(rowIndex, colIndex)} // Fixed: pass row and col indices
+                            style={{ cursor: onCellClick ? 'pointer' : 'default' }} // Add visual feedback
                         ></div>
                     ))}
                 </div>

@@ -3,24 +3,21 @@ import logo from './logo.svg';
 import './App.css';
 import InputField from './Components/InputField';
 import PetriDish from './Components/PetriDish';
-import './cell';
+import { Cell } from './cell';
 
-const App: React.FC = () => {
-  
-  const [running, setRunning] = useState(false);// State to track if the simulation is running
-
-  const [grid, setGrid] = useState<cell[][]>(initializeGrid());
-
-
-  const initializeGrid = (rows: number = 20, cols: number = 20): Cell[][] => {
+// Move initializeGrid function outside component to avoid redeclaration
+const initializeGrid = (rows: number = 50, cols: number = 50): Cell[][] => {
   const grid: Cell[][] = [];
 
   for (let row = 0; row < rows; row++) {
     const currentRow: Cell[] = [];
     for (let col = 0; col < cols; col++) {
       currentRow.push({
-        alive: Math.random() < 0.3, // 30% chance of alive at start
+        id: row * cols + col, // Generate unique ID
+        isAlive: Math.random() < 0.3, // 30% chance of alive at start
         age: 0,
+        mutationRate: 0.1, // Default mutation rate
+        color: 'green', // Default color
       });
     }
     grid.push(currentRow);
@@ -29,47 +26,55 @@ const App: React.FC = () => {
   return grid;
 };
 
+const App: React.FC = () => {
+  const [running, setRunning] = useState(false); // State to track if the simulation is running
+  const [grid, setGrid] = useState<Cell[][]>(initializeGrid());
+  
+  // Add state for input field values
+  const [timeInterval, setTimeInterval] = useState('');
+  const [mutationRate, setMutationRate] = useState('');
+  const [lifespan, setLifespan] = useState('');
 
-
-  const toggleSimulation = () => {// Function to toggle the simulation state
+  const toggleSimulation = () => {
+    // Function to toggle the simulation state
     setRunning((prev) => !prev);
     console.log("Simulation toggled");
-
   }
   
   return (
-    <div>
+    <div className="app-container">
       <h1>Cell Growth Simulation</h1>
 
-      <InputField
-        label="Time Interval "
-        placeholder="Enter time interval"
-        value=""
-        onChange={(value) => console.log(value)}
-      />
-      <InputField
-        label="Mutation Rate (%) "
-        placeholder="Enter rate of mutation"
-        value=""
-        onChange={(value) => console.log(value)}
-      />
-      <InputField
-        label="Lifespan (seconds) "
-        placeholder="Enter lifespan of simulation" 
-        value=""
-        onChange={(value) => console.log(value)}
-      />
-    
-    <button onClick={toggleSimulation}>
-        {running ? 'Stop Simulation' : 'Start Simulation'}
-      </button>
-    
-    
-    
+      <div className="controls-container">
+        <InputField
+          label="Time Interval (ms)"
+          placeholder="Enter time interval"
+          value={timeInterval}
+          onChange={setTimeInterval}
+        />
+        <InputField
+          label="Mutation Rate (%)"
+          placeholder="Enter rate of mutation"
+          value={mutationRate}
+          onChange={setMutationRate}
+        />
+        <InputField
+          label="Lifespan (seconds)"
+          placeholder="Enter lifespan of simulation" 
+          value={lifespan}
+          onChange={setLifespan}
+        />
+      
+        <button 
+          className={`simulation-button ${running ? 'stop' : 'start'}`}
+          onClick={toggleSimulation}
+        >
+          {running ? 'Stop Simulation' : 'Start Simulation'}
+        </button>
+      </div>
+      
+      <PetriDish grid={grid} />
     </div>
-
-
-
   );
 };
 

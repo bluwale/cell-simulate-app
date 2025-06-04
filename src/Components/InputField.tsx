@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import "./styles.css";
 
 interface InputFieldProps {
@@ -8,15 +8,20 @@ interface InputFieldProps {
     onChange: (value: string) => void;
 }
 
-const InputField: React.FC<InputFieldProps> = ({label, onChange, value, placeholder = "", }) => {
-    return(
-        <div>
+const InputField: React.FC<InputFieldProps> = ({ 
+    label, 
+    onChange, 
+    value, 
+    placeholder = "" 
+}) => {
+    return (
+        <div className="input-group">
             <label>{label}</label>
             <input
-            type="text"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={placeholder}
+                type="text"
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder={placeholder}
             />
         </div>
     );

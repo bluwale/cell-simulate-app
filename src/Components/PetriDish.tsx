@@ -1,3 +1,6 @@
+import React from 'react';
+import { Cell } from '../cell';
+
 // Optimized PetriDish Component with virtualization for better performance
 const PetriDish: React.FC<{
   grid: Cell[][];

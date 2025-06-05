@@ -1,3 +1,5 @@
+import React from 'react';
+
 const InputField: React.FC<{
   label: string;
   placeholder?: string;

@@ -4,10 +4,18 @@ import './styles.css';
 
 type PetriDishProps = {
     grid: Cell[][];
-    onCellClick?: (row: number, col: number) => void; // Fixed: proper function signature
+    onCellClick?: (row: number, col: number) => void;
 }
 
 const PetriDish: React.FC<PetriDishProps> = ({ grid, onCellClick }) => {
+    const getCellClass = (cell: Cell): string => {
+        if (!cell.isAlive) return 'cell dead';
+        
+        // Different classes based on cell properties
+        if (cell.color === 'orange') return 'cell alive mutated';
+        return 'cell alive normal';
+    };
+
     return (
         <div className="petri-dish">
             {grid.map((row, rowIndex) => (
@@ -15,9 +23,10 @@ const PetriDish: React.FC<PetriDishProps> = ({ grid, onCellClick }) => {
                     {row.map((cell, colIndex) => (
                         <div
                             key={colIndex}
-                            className={`cell ${cell.isAlive ? 'alive' : 'dead'}`}
-                            onClick={() => onCellClick && onCellClick(rowIndex, colIndex)} // Fixed: pass row and col indices
-                            style={{ cursor: onCellClick ? 'pointer' : 'default' }} // Add visual feedback
+                            className={getCellClass(cell)}
+                            onClick={() => onCellClick && onCellClick(rowIndex, colIndex)}
+                            style={{ cursor: onCellClick ? 'pointer' : 'default' }}
+                            title={cell.isAlive ? `Age: ${cell.age}, Mutation Rate: ${cell.mutationRate.toFixed(2)}` : 'Dead cell'}
                         ></div>
                     ))}
                 </div>

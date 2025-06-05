@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/cell-simulate-app/static/css/main.ab02d2db.css",
-    "main.js": "/cell-simulate-app/static/js/main.4b42db01.js",
+    "main.js": "/cell-simulate-app/static/js/main.0997cf83.js",
     "static/js/453.6c42e2e4.chunk.js": "/cell-simulate-app/static/js/453.6c42e2e4.chunk.js",
     "index.html": "/cell-simulate-app/index.html",
     "main.ab02d2db.css.map": "/cell-simulate-app/static/css/main.ab02d2db.css.map",
-    "main.4b42db01.js.map": "/cell-simulate-app/static/js/main.4b42db01.js.map",
+    "main.0997cf83.js.map": "/cell-simulate-app/static/js/main.0997cf83.js.map",
     "453.6c42e2e4.chunk.js.map": "/cell-simulate-app/static/js/453.6c42e2e4.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.ab02d2db.css",
-    "static/js/main.4b42db01.js"
+    "static/js/main.0997cf83.js"
   ]
 }

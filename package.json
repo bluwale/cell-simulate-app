@@ -1,6 +1,6 @@
 {
 
-  "homepage": "https://bluwale.github.io/cell-growth-simulation",
+  "homepage": "https://bluwale.github.io/cell-simulate-app",
 
   "name": "cell-simulate-app",
 
@@ -49,9 +49,8 @@
     "eject": "react-scripts eject",
 
     "predeploy": "npm run build",
-
+  
     "deploy": "gh-pages -d dist"
-
   },
 
   "eslintConfig": {

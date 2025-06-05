@@ -1,4 +1,6 @@
-// src/Components/ControlsPanel.tsx
+//file to help with refactoring and app.tsx readability
+
+
 import React from 'react';
 import InputField from './InputField';
 

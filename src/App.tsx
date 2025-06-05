@@ -1,4 +1,3 @@
-// src/App.tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
 import './Components/styles.css';
@@ -10,6 +9,8 @@ import ControlsPanel from './Components/ControlPanel';
 import StatsPanel from './Components/StatisticsPanel';
 import Legend from './Components/Legend';
 
+
+//importing constants have helped with preformance
 import {
   GRID_SIZE,
   DEFAULT_TIME_INTERVAL,
@@ -20,6 +21,8 @@ import {
 } from './Components/InitializeSimulation';
 
 const App: React.FC = () => {
+  
+  // State variables
   const [running, setRunning] = useState(false);
   const [grid, setGrid] = useState<Cell[][]>(() => initializeGrid());
 
@@ -57,7 +60,7 @@ const App: React.FC = () => {
     calculateStats();
   }, [calculateStats]);
 
-  // Toggle individual cell on click
+  // function to handle cell clicks, checks row and col indicies, toggles cell state and color
   const handleCellClick = useCallback((row: number, col: number) => {
     setGrid((prevGrid) =>
       prevGrid.map((r, rowIndex) =>

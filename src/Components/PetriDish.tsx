@@ -12,7 +12,6 @@ const PetriDish: React.FC<{
     return 'cell alive normal';
   };
 
-  // For performance with 200x200 grid, we use smaller cells
   return (
     <div className="petri-dish">
       {grid.map((row, rowIndex) => (

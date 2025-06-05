@@ -5,6 +5,8 @@ export const DEFAULT_TIME_INTERVAL = 1000;
 export const DEFAULT_MUTATION_RATE = 0.1;
 export const DEFAULT_LIFESPAN = 6;
 
+
+//function creates 2d grid, randomly populates cells with alive or dead state, assigns default properties of cell
 export function initializeGrid(
   rows: number = GRID_SIZE,
   cols: number = GRID_SIZE
@@ -26,6 +28,8 @@ export function initializeGrid(
   return grid;
 }
 
+
+//function returns neighbours of a cell in a grid, given its row and column indices
 export function getNeighbors(
   row: number,
   col: number,
@@ -53,6 +57,8 @@ export function getNeighbors(
   return neighbors;
 }
 
+
+//function simulates a generation of cell division and aging, returns new grid state
 export function simulateGeneration(
   grid: Cell[][],
   mutationRate: number,

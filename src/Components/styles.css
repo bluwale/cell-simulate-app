@@ -319,3 +319,68 @@ h1 {
 .cell.alive.mutated {
   animation: pulse-mutated 1.5s infinite;
 }
+/* Growth Chart Styles */
+.growth-chart-container {
+  margin: 20px 0;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.chart-header h3 {
+  color: white;
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.chart-toggle-button {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.chart-toggle-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.chart-toggle-button.active {
+  background: #4CAF50;
+  border-color: #4CAF50;
+}
+
+.chart-wrapper {
+  padding: 20px;
+}
+
+.growth-tooltip {
+  background: rgba(0, 0, 0, 0.8);
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tooltip-label {
+  color: white;
+  font-weight: bold;
+  margin: 0 0 5px 0;
+}
+
+.no-data-message {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 40px;
+}

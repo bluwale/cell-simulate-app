@@ -20,13 +20,7 @@ export default function GrowthChart({ data, isVisible, onToggleVisibility }: Pro
     if (active && payload && payload.length) {
       return (
         <div className="growth-tooltip">
-          <GrowthChart 
-        data={growthData}
-        isVisible={showChart}
-        onToggleVisibility={() => setShowChart(!showChart)}
-      />
-
-      <p className="tooltip-label">{`Generation ${label}`}</p>
+          <p className="tooltip-label">{`Generation ${label}`}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} style={{ color: entry.color }}>
               {`${entry.name}: ${entry.value}`}
@@ -41,7 +35,7 @@ export default function GrowthChart({ data, isVisible, onToggleVisibility }: Pro
   return (
     <div className="growth-chart-container">
       <div className="chart-header">
-        <h3>Colony Growth Over Time</h3>
+        <h3>Colony Growth Over Time </h3>
         <button 
           onClick={onToggleVisibility}
           className={`chart-toggle-button ${isVisible ? 'active' : ''}`}

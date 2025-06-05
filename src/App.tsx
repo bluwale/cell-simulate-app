@@ -5,8 +5,13 @@ import InputField from './Components/InputField';
 import PetriDish from './Components/PetriDish';
 import { Cell } from './cell';
 
-// Function to initialize the grid with cells
-const initializeGrid = (rows: number = 50, cols: number = 50): Cell[][] => {
+const GRID_SIZE = 200; // Meeting the 200x200 requirement
+const DEFAULT_TIME_INTERVAL = 1000;
+const DEFAULT_MUTATION_RATE = 0.1;
+const DEFAULT_LIFESPAN = 6;
+
+// Optimized grid initialization with reduced initial density for 200x200
+const initializeGrid = (rows: number = GRID_SIZE, cols: number = GRID_SIZE): Cell[][] => {
   const grid: Cell[][] = [];
 
   for (let row = 0; row < rows; row++) {
@@ -14,9 +19,9 @@ const initializeGrid = (rows: number = 50, cols: number = 50): Cell[][] => {
     for (let col = 0; col < cols; col++) {
       currentRow.push({
         id: row * cols + col,
-        isAlive: Math.random() < 0.1, // Reduced initial density to 10%
+        isAlive: Math.random() < 0.02, // Reduced to 2% for better performance with larger grid
         age: 0,
-        mutationRate: 0.1,
+        mutationRate: DEFAULT_MUTATION_RATE,
         color: 'green',
       });
     }
@@ -27,20 +32,15 @@ const initializeGrid = (rows: number = 50, cols: number = 50): Cell[][] => {
 };
 
 // Function to get neighboring cells (up, down, left, right)
-const getNeighbors = (grid: Cell[][], row: number, col: number): Array<{row: number, col: number}> => {
+const getNeighbors = (row: number, col: number, gridSize: number): Array<{row: number, col: number}> => {
   const neighbors = [];
-  const directions = [
-    [-1, 0], // up
-    [1, 0],  // down
-    [0, -1], // left
-    [0, 1]   // right
-  ];
+  const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
 
   for (const [dr, dc] of directions) {
     const newRow = row + dr;
     const newCol = col + dc;
     
-    if (newRow >= 0 && newRow < grid.length && newCol >= 0 && newCol < grid[0].length) {
+    if (newRow >= 0 && newRow < gridSize && newCol >= 0 && newCol < gridSize) {
       neighbors.push({ row: newRow, col: newCol });
     }
   }
@@ -51,14 +51,14 @@ const getNeighbors = (grid: Cell[][], row: number, col: number): Array<{row: num
 // Function to simulate one generation of bacterial growth
 const simulateGeneration = (grid: Cell[][], mutationRate: number, lifespan: number): Cell[][] => {
   const newGrid = grid.map(row => row.map(cell => ({ ...cell })));
+  const gridSize = grid.length;
   
   // First pass: age all cells and kill old ones
-  for (let row = 0; row < newGrid.length; row++) {
-    for (let col = 0; col < newGrid[row].length; col++) {
+  for (let row = 0; row < gridSize; row++) {
+    for (let col = 0; col < gridSize; col++) {
       const cell = newGrid[row][col];
       if (cell.isAlive) {
         cell.age += 1;
-        // Kill cells that exceed their lifespan
         if (cell.age >= lifespan) {
           cell.isAlive = false;
           cell.age = 0;
@@ -70,30 +70,26 @@ const simulateGeneration = (grid: Cell[][], mutationRate: number, lifespan: numb
   // Second pass: handle cell division
   const cellsToAdd: Array<{row: number, col: number, parentCell: Cell}> = [];
   
-  for (let row = 0; row < grid.length; row++) {
-    for (let col = 0; col < grid[row].length; col++) {
+  for (let row = 0; row < gridSize; row++) {
+    for (let col = 0; col < gridSize; col++) {
       const cell = grid[row][col];
       
-      // Only living cells can divide
       if (cell.isAlive) {
-        const neighbors = getNeighbors(grid, row, col);
+        const neighbors = getNeighbors(row, col, gridSize);
         const emptyNeighbors = neighbors.filter(({row: nRow, col: nCol}) => 
           !grid[nRow][nCol].isAlive
         );
         
-        // Cell can divide if there's at least one empty neighbor
         if (emptyNeighbors.length > 0) {
-          // Randomly select an empty neighbor for division
           const randomNeighbor = emptyNeighbors[Math.floor(Math.random() * emptyNeighbors.length)];
           
-          // Create new cell with potential mutation
           const isMutated = Math.random() < mutationRate;
           const newCell: Cell = {
-            id: randomNeighbor.row * grid[0].length + randomNeighbor.col,
+            id: randomNeighbor.row * gridSize + randomNeighbor.col,
             isAlive: true,
             age: 0,
             mutationRate: isMutated ? Math.min(mutationRate * 1.5, 1.0) : mutationRate,
-            color: isMutated ? 'orange' : cell.color, // Mutated cells are orange
+            color: isMutated ? 'orange' : cell.color,
           };
           
           cellsToAdd.push({
@@ -118,22 +114,18 @@ const App: React.FC = () => {
   const [running, setRunning] = useState(false);
   const [grid, setGrid] = useState<Cell[][]>(initializeGrid());
   
-  // Input field values with defaults
-  const [timeInterval, setTimeInterval] = useState('1000');
-  const [mutationRate, setMutationRate] = useState('0.1');
-  const [lifespan, setLifespan] = useState('6');
+  const [timeInterval, setTimeInterval] = useState(DEFAULT_TIME_INTERVAL.toString());
+  const [mutationRate, setMutationRate] = useState(DEFAULT_MUTATION_RATE.toString());
+  const [lifespan, setLifespan] = useState(DEFAULT_LIFESPAN.toString());
   
-  // Statistics
   const [generation, setGeneration] = useState(0);
   const [livingCells, setLivingCells] = useState(0);
   const [mutatedCells, setMutatedCells] = useState(0);
   
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const simulationStartTime = useRef<number>(0);
-  const lifespanTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Calculate statistics
-  useEffect(() => {
+  // Calculate statistics with useMemo for performance
+  const calculateStats = useCallback(() => {
     let living = 0;
     let mutated = 0;
     
@@ -152,72 +144,119 @@ const App: React.FC = () => {
     setMutatedCells(mutated);
   }, [grid]);
 
-  // Handle cell click to kill cell
-  const handleCellClick = (row: number, col: number) => {
+  useEffect(() => {
+    calculateStats();
+  }, [calculateStats]);
+
+  // Fixed: Now allows both adding AND removing cells
+  const handleCellClick = useCallback((row: number, col: number) => {
     setGrid((prevGrid) => {
       const newGrid = prevGrid.map((r, rowIndex) =>
         r.map((cell, colIndex) => {
           if (rowIndex === row && colIndex === col) {
-            return { ...cell, isAlive: false, age: 0 };
+            // Toggle cell state: if alive, kill it; if dead, revive it
+            return { 
+              ...cell, 
+              isAlive: !cell.isAlive, 
+              age: !cell.isAlive ? 0 : cell.age,
+              color: !cell.isAlive ? 'green' : cell.color
+            };
           }
           return cell;
         })
       );
       return newGrid;
     });
-  };
+  }, []);
 
-  const startSimulation = () => {
-    const interval = parseInt(timeInterval) || 1000;
-    const mutation = parseFloat(mutationRate) || 0.1;
-    const cellLifespan = parseInt(lifespan) || 6;
-    const lifespanMs = parseInt(lifespan) * 1000 || 6000;
+  const startSimulation = useCallback(() => {
+    const interval = parseInt(timeInterval) || DEFAULT_TIME_INTERVAL;
+    const mutation = parseFloat(mutationRate) || DEFAULT_MUTATION_RATE;
+    const cellLifespan = parseInt(lifespan) || DEFAULT_LIFESPAN;
     
-    simulationStartTime.current = Date.now();
+    // Validate inputs
+    if (interval < 100) {
+      alert('Time interval must be at least 100ms for performance reasons');
+      return;
+    }
+    if (mutation < 0 || mutation > 1) {
+      alert('Mutation rate must be between 0 and 1');
+      return;
+    }
+    if (cellLifespan < 1) {
+      alert('Cell lifespan must be at least 1 generation');
+      return;
+    }
     
     intervalRef.current = setInterval(() => {
       setGrid(prevGrid => simulateGeneration(prevGrid, mutation, cellLifespan));
       setGeneration(prev => prev + 1);
     }, interval);
     
-    // Set timeout to stop simulation after specified lifespan
-    lifespanTimeoutRef.current = setTimeout(() => {
-      stopSimulation();
-    }, lifespanMs);
-  };
+    setRunning(true);
+  }, [timeInterval, mutationRate, lifespan]);
 
-  const stopSimulation = () => {
+  const stopSimulation = useCallback(() => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-    if (lifespanTimeoutRef.current) {
-      clearTimeout(lifespanTimeoutRef.current);
-      lifespanTimeoutRef.current = null;
-    }
     setRunning(false);
-  };
+  }, []);
 
-  const toggleSimulation = () => {
+  const toggleSimulation = useCallback(() => {
     if (running) {
       stopSimulation();
     } else {
-      setRunning(true);
       startSimulation();
     }
-  };
+  }, [running, startSimulation, stopSimulation]);
 
-  const resetSimulation = () => {
+  const resetSimulation = useCallback(() => {
     stopSimulation();
     setGrid(initializeGrid());
     setGeneration(0);
-  };
+  }, [stopSimulation]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
   
   return (
-    <div className="app-container">
-      <h1>Bacterial Growth Simulation</h1>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      padding: '20px',
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif'
+    }}>
+      <h1 style={{
+        color: 'white',
+        fontSize: '2.5rem',
+        marginBottom: '30px',
+        textShadow: '2px 2px 4px rgba(0, 0, 0, 0.3)'
+      }}>
+        Bacterial Growth Simulation
+      </h1>
 
-      <div className="controls-container">
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+        marginBottom: '30px',
+        background: 'rgba(255, 255, 255, 0.1)',
+        backdropFilter: 'blur(10px)',
+        padding: '30px',
+        borderRadius: '15px',
+        border: '1px solid rgba(255, 255, 255, 0.2)'
+      }}>
         <InputField
           label="Time Interval (ms)"
           placeholder="Enter time interval (default: 1000)"
@@ -237,54 +276,149 @@ const App: React.FC = () => {
           onChange={setLifespan}
         />
       
-        <div className="button-group">
+        <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', justifyContent: 'center' }}>
           <button 
-            className={`simulation-button ${running ? 'stop' : 'start'}`}
             onClick={toggleSimulation}
+            style={{
+              padding: '15px 30px',
+              fontSize: '18px',
+              fontWeight: '600',
+              border: 'none',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              background: running ? 
+                'linear-gradient(45deg, #f44336, #da190b)' : 
+                'linear-gradient(45deg, #4CAF50, #45a049)',
+              color: 'white',
+              minWidth: '150px'
+            }}
           >
             {running ? 'Stop Simulation' : 'Start Simulation'}
           </button>
           
           <button 
-            className="simulation-button reset"
             onClick={resetSimulation}
+            style={{
+              padding: '15px 30px',
+              fontSize: '18px',
+              fontWeight: '600',
+              border: 'none',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              background: 'linear-gradient(45deg, #ff9800, #f57c00)',
+              color: 'white',
+              minWidth: '150px'
+            }}
           >
             Reset Grid
           </button>
         </div>
 
-        <div className="stats-container">
-          <div className="stat">
-            <span className="stat-label">Generation:</span>
-            <span className="stat-value">{generation}</span>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-around',
+          gap: '20px',
+          marginTop: '20px',
+          padding: '20px',
+          background: 'rgba(255, 255, 255, 0.05)',
+          borderRadius: '10px'
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <span style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '12px' }}>GENERATION</span>
+            <span style={{ color: 'white', fontSize: '24px', fontWeight: 'bold' }}>{generation}</span>
           </div>
-          <div className="stat">
-            <span className="stat-label">Living Cells:</span>
-            <span className="stat-value">{livingCells}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <span style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '12px' }}>LIVING CELLS</span>
+            <span style={{ color: 'white', fontSize: '24px', fontWeight: 'bold' }}>{livingCells}</span>
           </div>
-          <div className="stat">
-            <span className="stat-label">Mutated Cells:</span>
-            <span className="stat-value mutated">{mutatedCells}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <span style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '12px' }}>MUTATED CELLS</span>
+            <span style={{ color: '#ff9800', fontSize: '24px', fontWeight: 'bold' }}>{mutatedCells}</span>
           </div>
         </div>
       </div>
       
-      <div className="legend">
-        <div className="legend-item">
-          <div className="legend-color normal"></div>
+      <div style={{
+        display: 'flex',
+        gap: '20px',
+        marginBottom: '20px',
+        padding: '15px',
+        background: 'rgba(255, 255, 255, 0.1)',
+        borderRadius: '10px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'white' }}>
+          <div style={{
+            width: '16px',
+            height: '16px',
+            background: 'radial-gradient(circle, #4CAF50, #2E7D32)',
+            borderRadius: '3px'
+          }} />
           <span>Normal Cells</span>
         </div>
-        <div className="legend-item">
-          <div className="legend-color mutated"></div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'white' }}>
+          <div style={{
+            width: '16px',
+            height: '16px',
+            background: 'radial-gradient(circle, #ff9800, #f57c00)',
+            borderRadius: '3px'
+          }} />
           <span>Mutated Cells</span>
         </div>
-        <div className="legend-item">
-          <div className="legend-color dead"></div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'white' }}>
+          <div style={{
+            width: '16px',
+            height: '16px',
+            background: 'rgba(255, 255, 255, 0.1)',
+            borderRadius: '3px'
+          }} />
           <span>Dead/Empty</span>
         </div>
       </div>
+
+      <p style={{
+        color: 'white',
+        marginBottom: '20px',
+        textAlign: 'center',
+        background: 'rgba(255, 255, 255, 0.1)',
+        padding: '10px 20px',
+        borderRadius: '8px'
+      }}>
+        Click on cells to add/remove bacteria. Grid size: {GRID_SIZE}×{GRID_SIZE}
+      </p>
       
-      <PetriDish grid={grid} onCellClick={handleCellClick} />
+      <div style={{
+        border: '3px solid rgba(255, 255, 255, 0.3)',
+        borderRadius: '15px',
+        padding: '10px',
+        background: 'rgba(255, 255, 255, 0.1)',
+        maxHeight: '70vh',
+        overflow: 'auto'
+      }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          {grid.map((row, rowIndex) => (
+            <div key={rowIndex} style={{ display: 'flex' }}>
+              {row.map((cell, colIndex) => (
+                <div
+                  key={colIndex}
+                  onClick={() => handleCellClick(rowIndex, colIndex)}
+                  style={{
+                    width: '3px',
+                    height: '3px',
+                    border: '0.5px solid rgba(255, 255, 255, 0.1)',
+                    cursor: 'pointer',
+                    background: !cell.isAlive 
+                      ? 'rgba(255, 255, 255, 0.1)'
+                      : cell.color === 'orange'
+                        ? 'radial-gradient(circle, #ff9800, #f57c00)'
+                        : 'radial-gradient(circle, #4CAF50, #2E7D32)'
+                  }}
+                  title={cell.isAlive ? `Age: ${cell.age}, Mutation Rate: ${cell.mutationRate.toFixed(2)}` : 'Dead cell - Click to add bacteria'}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

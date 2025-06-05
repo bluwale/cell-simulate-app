@@ -1,6 +1,6 @@
 import { Cell } from '../cell';
 
-export const GRID_SIZE = 200;
+export const GRID_SIZE = 100;
 export const DEFAULT_TIME_INTERVAL = 1000;
 export const DEFAULT_MUTATION_RATE = 0.1;
 export const DEFAULT_LIFESPAN = 6;

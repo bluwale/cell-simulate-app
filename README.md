@@ -1,4 +1,4 @@
-# Getting Started with Create React App
+This project simulates the bacterial growth inside a petri dish, where the user has controls over the time interval, the probability of mutation, and cell lifespan variables. Users can also add and remove live cells from the petri dish. The project also maps the current live, dead and total cells in the petri dish each generation in the file. The project runs as a regular typescript react app does, with the app.tsx file deploying everything, and many of the functionalities of the app being compartmentalized into separate initialization files inside the components directory. Key components include the initialization of the petri dish inside PetriDish.tsx, the ControlPanel and legend files try and reduce the load of app.tsx, and the GrowthChart.tsx file contains the initialization of the bonus component of the growth chart. The only assumption made in the project was the fact that users who wanted to manually add or remove cells would want to only add live cells. 
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 

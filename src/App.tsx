@@ -8,7 +8,7 @@ import InputField from './Components/InputField';
 import ControlsPanel from './Components/ControlPanel';
 import StatsPanel from './Components/StatisticsPanel';
 import Legend from './Components/Legend';
-
+import GrowthChart, { GrowthDataPoint } from './Components/GrowthChart';
 
 //importing constants have helped with preformance
 import {
@@ -37,6 +37,8 @@ const App: React.FC = () => {
   const [generation, setGeneration] = useState(0);
   const [livingCells, setLivingCells] = useState(0);
   const [mutatedCells, setMutatedCells] = useState(0);
+  const [growthData, setGrowthData] = useState<GrowthDataPoint[]>([]);
+  const [showChart, setShowChart] = useState(false);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -58,7 +60,22 @@ const App: React.FC = () => {
 
   useEffect(() => {
     calculateStats();
-  }, [calculateStats]);
+    // Update growth data when stats change and simulation is running
+    if (running && generation > 0) {
+      const newDataPoint: GrowthDataPoint = {
+        generation,
+        livingCells,
+        mutatedCells,
+        normalCells: livingCells - mutatedCells,
+      };
+      
+      setGrowthData(prevData => {
+        // Keep only the last 100 data points for performance
+        const updatedData = [...prevData, newDataPoint];
+        return updatedData.length > 100 ? updatedData.slice(-100) : updatedData;
+      });
+    }
+  }, [calculateStats, running, generation, livingCells, mutatedCells]);
 
   // function to handle cell clicks, checks row and col indicies, toggles cell state and color
   const handleCellClick = useCallback((row: number, col: number) => {
@@ -124,6 +141,7 @@ const App: React.FC = () => {
     stopSimulation();
     setGrid(initializeGrid());
     setGeneration(0);
+    setGrowthData([]); // Clear growth data on reset
   }, [stopSimulation]);
 
   // Clean up on unmount
@@ -153,6 +171,12 @@ const App: React.FC = () => {
         generation={generation}
         livingCells={livingCells}
         mutatedCells={mutatedCells}
+      />
+
+      <GrowthChart 
+        data={growthData}
+        isVisible={showChart}
+        onToggleVisibility={() => setShowChart(!showChart)}
       />
 
       <Legend />

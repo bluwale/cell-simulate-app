@@ -1,11 +1,13 @@
 import React from 'react';
 import { Cell } from '../cell';
 
-// Optimized PetriDish Component with virtualization for better performance
+
 const PetriDish: React.FC<{
   grid: Cell[][];
   onCellClick?: (row: number, col: number) => void;
 }> = ({ grid, onCellClick }) => {
+  
+  // Function to determine the class of a cell based on its state, returns a string whether alive, dead, or mutated
   const getCellClass = (cell: Cell): string => {
     if (!cell.isAlive) return 'cell dead';
     if (cell.color === 'orange') return 'cell alive mutated';

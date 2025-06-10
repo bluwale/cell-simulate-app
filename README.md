@@ -1,10 +1,13 @@
-This project simulates the bacterial growth inside a petri dish, where the user has controls over the time interval, the probability of mutation, and cell lifespan variables. Users can also add and remove live cells from the petri dish. The project also maps the current live, dead and total cells in the petri dish each generation in the file. The project runs as a regular typescript react app does, with the app.tsx file deploying everything, and many of the functionalities of the app being compartmentalized into separate initialization files inside the components directory. Key components include the initialization of the petri dish inside PetriDish.tsx, the ControlPanel and legend files try and reduce the load of app.tsx, and the GrowthChart.tsx file contains the initialization of the bonus component of the growth chart. The only assumption made in the project was the fact that users who wanted to manually add or remove cells would want to only add live cells. 
+This project simulates the bacterial growth inside a petri dish, where the user has controls over the time interval, the probability of mutation, and cell lifespan variables. Users can also add and remove live cells from the petri dish. The project also maps the current live, dead and total cells in the petri dish each generation in the file. The project runs as a regular typescript react app does, with the app.tsx file deploying everything, and many of the functionalities of the app being compartmentalized into separate initialization files inside the components directory. Key components include the initialization of the petri dish inside PetriDish.tsx, the ControlPanel and legend files try and reduce the load of app.tsx, and the GrowthChart.tsx file contains the initialization of the bonus component of the growth chart. The only assumption made in the project was the fact that users who wanted to manually add or remove cells would want to only add live cells. I also decided to display performance metrics directly on to the web app instead of the README (i got kind of interested in how it works and wanted to display it better).
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
 
 In the project directory, you can run:
+### `npm Install`
+
+Run this first, it will install the correct packages and dependencies for the app to function
 
 ### `npm start`
 
@@ -44,3 +47,31 @@ You don’t have to ever use `eject`. The curated feature set is suitable for sm
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
 To learn React, check out the [React documentation](https://reactjs.org/).
+
+## Component Summaries
+
+Component 1)
+InputField.tsx is a simple inputfield file, that initializes inputfield logic as simple as possible for more effective modularity. 
+
+component 2)
+ControlPanel.tsx file initializes the inputs for changing the time interval, the mutation rate, lifespan, start/stop button and reset button. Imports InputField.tsx, and uses button features. Is placed in a seperate file for better readability and less clutter. 
+
+component 3)
+InitializeSimulation.tsx file does multiple things, it first creates a basic 2d grid, and randomly generates even or odd cells inside. It also initializes the function getNeighbors, which uses arrray of coordinates as directions, and function simulateGeneration, which adds, aging and mutation funtionality. There is heavy commenting in this file as the functionality added is more complex than others. 
+
+component 4)
+Legend.tsx file creates a simple graphic for user to understand the colors that represent dead, alive and mutated cells. Is initialized in a seperate file for better modularity and readability of app.tsx
+
+component 5)
+PetriDish.tsx is a simple visualizer for our 2D grid, using css styling to create nice looking cell blocks for the grid. Uses virtualization to keep massive grid working as smoothly as possible. 
+
+component 6)
+StatisticsPanel.tsx file creates simple counting graphics for the simulation, for user to keep track of live, dead and mutated cells. Is initialized in a seperate file for better modularity and readability of app.tsx 
+
+component 7)
+styles.css holds almost all of the styling for the different components of the app. 
+
+
+## App.tsx 
+The main logic is deployed in this file, with so many components being deployed and use cases being initialized it is a bit long. A quick summary of what happens in the file is: new interval is set for every new simulation, performance statistics functionality have been added and exported onto a csv, which is then styled seperately. GrowthChart, ControlPanel, Legend and all other componenents have been imported and deployed properly to manage clean and easy to read UI.  
+

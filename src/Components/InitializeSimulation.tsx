@@ -29,7 +29,8 @@ export function initializeGrid(
 }
 
 
-//function returns neighbours of a cell in a grid, given its row and column indices
+//function uses array of directions to find neighbors of cell, loops through each 
+// direction and checks if neighbor is within grid bounds, returns array of neighbor coordinates
 export function getNeighbors(
   row: number,
   col: number,
@@ -64,10 +65,11 @@ export function simulateGeneration(
   mutationRate: number,
   lifespan: number
 ): Cell[][] {
+  
   const gridSize = grid.length;
-  // 1) Clone the grid so we don’t mutate in place
+  // Clone the grid so we don’t mutate in place
   const newGrid = grid.map((r) => r.map((cell) => ({ ...cell })));
-  // 2) Age and kill old cells
+  // loop through grid, age each cell, if cell age exceeds lifespan, set isAlive to false and reset age
   for (let row = 0; row < gridSize; row++) {
     for (let col = 0; col < gridSize; col++) {
       const cell = newGrid[row][col];
@@ -86,6 +88,9 @@ export function simulateGeneration(
     col: number;
     parentCell: Cell;
   }> = [];
+  // Loop through the grid again to find cells that are alive and can divide, use getNeighbors 
+  // to find empty neighbors of cell, if empty neighbor found, create new cell randomly with properties of
+  //  parent cell and add to cellsToAdd array
   for (let row = 0; row < gridSize; row++) {
     for (let col = 0; col < gridSize; col++) {
       const cell = grid[row][col];
@@ -117,7 +122,8 @@ export function simulateGeneration(
       }
     }
   }
-  // 4) Add divisions
+  // Add new cells to the grid based on cellsToAdd array,
+  // ensuring that we do not overwrite existing cells
   cellsToAdd.forEach(({ row, col, parentCell }) => {
     newGrid[row][col] = parentCell;
   });

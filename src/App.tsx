@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
 import './Components/styles.css';
-
 import { Cell } from './cell';
 import PetriDish from './Components/PetriDish';
 import InputField from './Components/InputField';
@@ -19,6 +18,8 @@ import {
   simulateGeneration,
 } from './Components/InitializeSimulation';
 
+
+// Define the structure for performance metrics
 interface PerformanceMetrics {
   generation: number;
   executionTime: number;
@@ -41,6 +42,7 @@ const App: React.FC = () => {
   const [growthData, setGrowthData] = useState<GrowthDataPoint[]>([]);
   const [showChart, setShowChart] = useState(false);
 
+  // Performance metrics state
   const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetrics[]>([]);
   const [showPerformanceMetrics, setShowPerformanceMetrics] = useState(false);
   const [currentPerformance, setCurrentPerformance] = useState({
@@ -51,8 +53,10 @@ const App: React.FC = () => {
     maxExecutionTime: 0,
   });
 
+  // Ref to store the interval ID for the simulation
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Function to get memory usage in MB, 
   const getMemoryUsage = (): number => {
     if ('memory' in performance && (performance as any).memory) {
       const memory = (performance as any).memory;
@@ -61,6 +65,7 @@ const App: React.FC = () => {
     return 0;
   };
 
+  //function to update performance stats based on collected metrics, counts and averages execution time and memory usage
   const updatePerformanceStats = useCallback(() => {
     if (performanceMetrics.length === 0) return;
 
@@ -80,6 +85,7 @@ const App: React.FC = () => {
     updatePerformanceStats();
   }, [updatePerformanceStats]);
 
+  // Function to calculate living and mutated cells
   const calculateStats = useCallback(() => {
     let living = 0;
     let mutated = 0;
@@ -95,6 +101,7 @@ const App: React.FC = () => {
     setMutatedCells(mutated);
   }, [grid]);
 
+  // Effect to calculate stats and update growth data on grid changes
   useEffect(() => {
     calculateStats();
     if (running && generation > 0) {
@@ -112,6 +119,7 @@ const App: React.FC = () => {
     }
   }, [calculateStats, running, generation, livingCells, mutatedCells]);
 
+  // Function to handle cell clicks for toggling bacteria
   const handleCellClick = useCallback((row: number, col: number) => {
     setGrid(prevGrid =>
       prevGrid.map((r, rowIndex) =>
@@ -130,11 +138,13 @@ const App: React.FC = () => {
     );
   }, []);
 
+  //starts the simulation with the inputted parameters, validates inputs and sets up the interval for simulation
   const startSimulation = useCallback(() => {
     const interval = parseInt(timeInterval) || DEFAULT_TIME_INTERVAL;
     const mutation = parseFloat(mutationRate) || DEFAULT_MUTATION_RATE;
     const cellLifespan = parseInt(lifespan) || DEFAULT_LIFESPAN;
 
+    // Validate inputs
     if (interval < 100) {
       alert('Time interval must be at least 100ms for performance reasons');
       return;
@@ -148,6 +158,7 @@ const App: React.FC = () => {
       return;
     }
 
+    // Clear any existing interval, then set new grid, create new performance metrics and reset generation
     intervalRef.current = setInterval(() => {
       setGrid(prevGrid => {
         const startTime = performance.now();
@@ -216,6 +227,7 @@ const App: React.FC = () => {
     setPerformanceMetrics([]);
   }, [stopSimulation]);
 
+  // Export performance data into a csv file format, log to console and display in a table format
   const exportPerformanceData = useCallback(() => {
     console.log('Performance Metrics Export:');
     console.table(performanceMetrics);
@@ -230,12 +242,15 @@ const App: React.FC = () => {
     console.log(csvData);
   }, [performanceMetrics]);
 
+  // Effect to handle cleanup on component unmount for new intervals
   useEffect(() => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, []);
 
+
+  //UI setup with all components, controls, stats and performance metrics
   return (
     <div className="app-container">
       <h1>Bacterial Growth Simulation</h1>

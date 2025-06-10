@@ -2,6 +2,18 @@ This project simulates the bacterial growth inside a petri dish, where the user 
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## How To Use
+Adjust time interval, mutation rate and cell lifespan variables to desire, then click start simulation. Watch simulation grow over the mutliple generations. To stop simulation, click stop simulation and select reset grid if you want to. User can click on individual cells on the petri dish as well to add or remove living cells. Performance Metrics and Growth Chart graphs can be viewed with buttons. 
+
+
+
+
+## Tech Stack
+- React + Typescript
+- CSS Modules
+- GitHub Pages (deployment)
+
+
 ## Available Scripts
 
 In the project directory, you can run:
@@ -50,25 +62,25 @@ To learn React, check out the [React documentation](https://reactjs.org/).
 
 ## Component Summaries
 
-Component 1)
+Component 1: InputField.tsx)
 InputField.tsx is a simple inputfield file, that initializes inputfield logic as simple as possible for more effective modularity. 
 
-component 2)
+component 2: ControlPanel.tsx)
 ControlPanel.tsx file initializes the inputs for changing the time interval, the mutation rate, lifespan, start/stop button and reset button. Imports InputField.tsx, and uses button features. Is placed in a seperate file for better readability and less clutter. 
 
-component 3)
+component 3: InitializeSimulation.tsx)
 InitializeSimulation.tsx file does multiple things, it first creates a basic 2d grid, and randomly generates even or odd cells inside. It also initializes the function getNeighbors, which uses arrray of coordinates as directions, and function simulateGeneration, which adds, aging and mutation funtionality. There is heavy commenting in this file as the functionality added is more complex than others. 
 
-component 4)
+component 4: Legend.tsx)
 Legend.tsx file creates a simple graphic for user to understand the colors that represent dead, alive and mutated cells. Is initialized in a seperate file for better modularity and readability of app.tsx
 
-component 5)
+component 5: PetriDish.tsx)
 PetriDish.tsx is a simple visualizer for our 2D grid, using css styling to create nice looking cell blocks for the grid. Uses virtualization to keep massive grid working as smoothly as possible. 
 
-component 6)
+component 6: StatisticsPanel.tsx)
 StatisticsPanel.tsx file creates simple counting graphics for the simulation, for user to keep track of live, dead and mutated cells. Is initialized in a seperate file for better modularity and readability of app.tsx 
 
-component 7)
+component 7: styles.css)
 styles.css holds almost all of the styling for the different components of the app. 
 
 

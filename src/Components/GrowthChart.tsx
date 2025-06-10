@@ -35,7 +35,7 @@ export default function GrowthChart({ data, isVisible, onToggleVisibility }: Pro
   return (
     <div className="growth-chart-container">
       <div className="chart-header">
-        <h3>Colony Growth Over Time </h3>
+        <h3>Colony Growth Chart </h3>
         <button 
           onClick={onToggleVisibility}
           className={`chart-toggle-button ${isVisible ? 'active' : ''}`}

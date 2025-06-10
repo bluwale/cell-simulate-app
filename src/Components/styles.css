@@ -384,3 +384,122 @@ h1 {
   color: rgba(255, 255, 255, 0.7);
   padding: 40px;
 }
+/* Performance Metrics — integrated with existing app look */
+.performance-container {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 20px;
+  margin: 20px 0;
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.performance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.performance-header h3 {
+  color: white;
+  margin: 0;
+  font-size: 1.5rem;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.performance-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.performance-toggle-button {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s ease;
+}
+
+.performance-toggle-button:hover{
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.performance-toggle-button.active {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.performance-stats {
+  margin-top: 16px;
+}
+
+.perf-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.perf-stat {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 14px;
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.perf-stat-label {
+  display: block;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.perf-stat-value {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+.recent-performance {
+  margin-top: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px;
+  border-radius: 10px;
+}
+
+.recent-performance h4 {
+  color: white;
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+}
+
+.performance-history {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.performance-entry {
+  color: white;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.performance-entry:last-child {
+  border-bottom: none;
+}
+
+.no-performance-data {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 16px 0;
+}

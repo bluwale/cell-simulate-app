@@ -10,7 +10,6 @@ import StatsPanel from './Components/StatisticsPanel';
 import Legend from './Components/Legend';
 import GrowthChart, { GrowthDataPoint } from './Components/GrowthChart';
 
-//importing constants have helped with preformance
 import {
   GRID_SIZE,
   DEFAULT_TIME_INTERVAL,
@@ -20,18 +19,20 @@ import {
   simulateGeneration,
 } from './Components/InitializeSimulation';
 
+interface PerformanceMetrics {
+  generation: number;
+  executionTime: number;
+  memoryUsage: number;
+  cellCount: number;
+  timestamp: number;
+}
+
 const App: React.FC = () => {
-  
-  // State variables
   const [running, setRunning] = useState(false);
   const [grid, setGrid] = useState<Cell[][]>(() => initializeGrid());
 
-  const [timeInterval, setTimeInterval] = useState(
-    DEFAULT_TIME_INTERVAL.toString()
-  );
-  const [mutationRate, setMutationRate] = useState(
-    DEFAULT_MUTATION_RATE.toString()
-  );
+  const [timeInterval, setTimeInterval] = useState(DEFAULT_TIME_INTERVAL.toString());
+  const [mutationRate, setMutationRate] = useState(DEFAULT_MUTATION_RATE.toString());
   const [lifespan, setLifespan] = useState(DEFAULT_LIFESPAN.toString());
 
   const [generation, setGeneration] = useState(0);
@@ -40,14 +41,50 @@ const App: React.FC = () => {
   const [growthData, setGrowthData] = useState<GrowthDataPoint[]>([]);
   const [showChart, setShowChart] = useState(false);
 
+  const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetrics[]>([]);
+  const [showPerformanceMetrics, setShowPerformanceMetrics] = useState(false);
+  const [currentPerformance, setCurrentPerformance] = useState({
+    avgExecutionTime: 0,
+    avgMemoryUsage: 0,
+    maxMemoryUsage: 0,
+    minExecutionTime: 0,
+    maxExecutionTime: 0,
+  });
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Calculate stats
+  const getMemoryUsage = (): number => {
+    if ('memory' in performance && (performance as any).memory) {
+      const memory = (performance as any).memory;
+      return Math.round((memory.usedJSHeapSize / (1024 * 1024)) * 100) / 100;
+    }
+    return 0;
+  };
+
+  const updatePerformanceStats = useCallback(() => {
+    if (performanceMetrics.length === 0) return;
+
+    const executionTimes = performanceMetrics.map(m => m.executionTime);
+    const memoryUsages = performanceMetrics.map(m => m.memoryUsage).filter(m => m > 0);
+
+    setCurrentPerformance({
+      avgExecutionTime: Math.round((executionTimes.reduce((a, b) => a + b, 0) / executionTimes.length) * 100) / 100,
+      avgMemoryUsage: memoryUsages.length > 0 ? Math.round((memoryUsages.reduce((a, b) => a + b, 0) / memoryUsages.length) * 100) / 100 : 0,
+      maxMemoryUsage: memoryUsages.length > 0 ? Math.max(...memoryUsages) : 0,
+      minExecutionTime: Math.min(...executionTimes),
+      maxExecutionTime: Math.max(...executionTimes),
+    });
+  }, [performanceMetrics]);
+
+  useEffect(() => {
+    updatePerformanceStats();
+  }, [updatePerformanceStats]);
+
   const calculateStats = useCallback(() => {
     let living = 0;
     let mutated = 0;
-    grid.forEach((row) =>
-      row.forEach((cell) => {
+    grid.forEach(row =>
+      row.forEach(cell => {
         if (cell.isAlive) {
           living++;
           if (cell.color === 'orange') mutated++;
@@ -60,7 +97,6 @@ const App: React.FC = () => {
 
   useEffect(() => {
     calculateStats();
-    // Update growth data when stats change and simulation is running
     if (running && generation > 0) {
       const newDataPoint: GrowthDataPoint = {
         generation,
@@ -68,18 +104,16 @@ const App: React.FC = () => {
         mutatedCells,
         normalCells: livingCells - mutatedCells,
       };
-      
+
       setGrowthData(prevData => {
-        // Keep only the last 100 data points for performance
         const updatedData = [...prevData, newDataPoint];
         return updatedData.length > 100 ? updatedData.slice(-100) : updatedData;
       });
     }
   }, [calculateStats, running, generation, livingCells, mutatedCells]);
 
-  // function to handle cell clicks, checks row and col indicies, toggles cell state and color
   const handleCellClick = useCallback((row: number, col: number) => {
-    setGrid((prevGrid) =>
+    setGrid(prevGrid =>
       prevGrid.map((r, rowIndex) =>
         r.map((cell, colIndex) => {
           if (rowIndex === row && colIndex === col) {
@@ -96,7 +130,6 @@ const App: React.FC = () => {
     );
   }, []);
 
-  // Start / Stop / Reset simulation
   const startSimulation = useCallback(() => {
     const interval = parseInt(timeInterval) || DEFAULT_TIME_INTERVAL;
     const mutation = parseFloat(mutationRate) || DEFAULT_MUTATION_RATE;
@@ -116,10 +149,48 @@ const App: React.FC = () => {
     }
 
     intervalRef.current = setInterval(() => {
-      setGrid((prevGrid) =>
-        simulateGeneration(prevGrid, mutation, cellLifespan)
-      );
-      setGeneration((prev) => prev + 1);
+      setGrid(prevGrid => {
+        const startTime = performance.now();
+        const memoryBefore = getMemoryUsage();
+
+        const newGrid = simulateGeneration(prevGrid, mutation, cellLifespan);
+
+        const endTime = performance.now();
+        const memoryAfter = getMemoryUsage();
+        const executionTime = Math.round((endTime - startTime) * 100) / 100;
+
+        const cellCount = newGrid.flat().filter(cell => cell.isAlive).length;
+
+        const metric: PerformanceMetrics = {
+          generation: 0,
+          executionTime,
+          memoryUsage: memoryAfter > 0 ? memoryAfter : memoryBefore,
+          cellCount,
+          timestamp: Date.now(),
+        };
+
+        console.log(`Generation execution time: ${executionTime} ms | Memory: ${metric.memoryUsage} MB | Living cells: ${cellCount}`);
+
+        setPerformanceMetrics(prevMetrics => {
+          const updatedMetrics = [...prevMetrics, metric];
+          return updatedMetrics.length > 50 ? updatedMetrics.slice(-50) : updatedMetrics;
+        });
+
+        return newGrid;
+      });
+
+      setGeneration(prev => {
+        const nextGen = prev + 1;
+        setPerformanceMetrics(prevMetrics => {
+          if (prevMetrics.length > 0) {
+            const updated = [...prevMetrics];
+            updated[updated.length - 1].generation = nextGen;
+            return updated;
+          }
+          return prevMetrics;
+        });
+        return nextGen;
+      });
     }, interval);
 
     setRunning(true);
@@ -141,10 +212,24 @@ const App: React.FC = () => {
     stopSimulation();
     setGrid(initializeGrid());
     setGeneration(0);
-    setGrowthData([]); // Clear growth data on reset
+    setGrowthData([]);
+    setPerformanceMetrics([]);
   }, [stopSimulation]);
 
-  // Clean up on unmount
+  const exportPerformanceData = useCallback(() => {
+    console.log('Performance Metrics Export:');
+    console.table(performanceMetrics);
+
+    const csvHeader = 'Generation,Execution Time (ms),Memory Usage (MB),Cell Count,Timestamp';
+    const csvData = performanceMetrics.map(m =>
+      `${m.generation},${m.executionTime},${m.memoryUsage},${m.cellCount},${m.timestamp}`
+    ).join('\n');
+
+    console.log('\nCSV Format:');
+    console.log(csvHeader);
+    console.log(csvData);
+  }, [performanceMetrics]);
+
   useEffect(() => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -173,7 +258,73 @@ const App: React.FC = () => {
         mutatedCells={mutatedCells}
       />
 
-      <GrowthChart 
+      <div className="performance-container">
+        <div className="performance-header">
+          <h3>Performance Metrics</h3>
+          <div className="performance-buttons">
+            <button
+              onClick={() => setShowPerformanceMetrics(!showPerformanceMetrics)}
+              className={`performance-toggle-button ${showPerformanceMetrics ? 'active' : ''}`}
+            >
+              {showPerformanceMetrics ? 'Hide' : 'Show'} Metrics
+            </button>
+          </div>
+        </div>
+
+        {showPerformanceMetrics && (
+          <div className="performance-stats">
+            {performanceMetrics.length > 0 ? (
+              <>
+                <div className="perf-stat-grid">
+                  <div className="perf-stat">
+                    <span className="perf-stat-label">Avg Execution Time</span>
+                    <span className="perf-stat-value">{currentPerformance.avgExecutionTime} ms</span>
+                  </div>
+                  <div className="perf-stat">
+                    <span className="perf-stat-label">Execution Range</span>
+                    <span className="perf-stat-value">{currentPerformance.minExecutionTime} - {currentPerformance.maxExecutionTime} ms</span>
+                  </div>
+                  {currentPerformance.avgMemoryUsage > 0 && (
+                    <>
+                      <div className="perf-stat">
+                        <span className="perf-stat-label">Avg Memory Usage</span>
+                        <span className="perf-stat-value">{currentPerformance.avgMemoryUsage} MB</span>
+                      </div>
+                      <div className="perf-stat">
+                        <span className="perf-stat-label">Peak Memory</span>
+                        <span className="perf-stat-value">{currentPerformance.maxMemoryUsage} MB</span>
+                      </div>
+                    </>
+                  )}
+                  <div className="perf-stat">
+                    <span className="perf-stat-label">Generations Tracked</span>
+                    <span className="perf-stat-value">{performanceMetrics.length}</span>
+                  </div>
+                </div>
+
+                <div className="recent-performance">
+                  <h4>Recent Performance (Last 10 generations)</h4>
+                  <div className="performance-history">
+                    {performanceMetrics.slice(-10).reverse().map((metric, index) => (
+                      <div key={index} className="performance-entry">
+                        <span>Gen {metric.generation}: {metric.executionTime}ms</span>
+                        {metric.memoryUsage > 0 && <span> | {metric.memoryUsage}MB</span>}
+                        <span> | {metric.cellCount} cells</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="no-performance-data">
+                <p>Start the simulation to collect performance metrics</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      <GrowthChart
         data={growthData}
         isVisible={showChart}
         onToggleVisibility={() => setShowChart(!showChart)}
@@ -181,17 +332,14 @@ const App: React.FC = () => {
 
       <Legend />
 
-      <p
-        className="instructions"
-        style={{
-          color: 'white',
-          marginBottom: '20px',
-          textAlign: 'center',
-          background: 'rgba(255,255,255,0.1)',
-          padding: '10px 20px',
-          borderRadius: '8px',
-        }}
-      >
+      <p className="instructions" style={{
+        color: 'white',
+        marginBottom: '20px',
+        textAlign: 'center',
+        background: 'rgba(255,255,255,0.1)',
+        padding: '10px 20px',
+        borderRadius: '8px',
+      }}>
         Click on cells to add/remove bacteria. Grid size: {GRID_SIZE}×{GRID_SIZE}
       </p>
 
